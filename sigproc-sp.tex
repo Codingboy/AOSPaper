@@ -62,7 +62,7 @@ Format\titlenote{(Does NOT produce the permission block, copyright information n
 % without further effort on your part as the last section in
 % the body of your article BEFORE References or any Appendices.
 
-\numberofauthors{8} %  in this sample file, there are a *total*
+\numberofauthors{2} %  in this sample file, there are a *total*
 % of EIGHT authors. SIX appear on the 'first-page' (for formatting
 % reasons) and the remaining two appear in the \additionalauthors section.
 %
@@ -134,15 +134,54 @@ This paper also contains a small introduction in USB and microkernels for better
 
 \terms{Theory}
 
-\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
+\keywords{USB, Microkernel, seL4} % NOT required for Proceedings
 
 \section{Introduction}
-\section{Content}
-\subsection{USB}
-\subsection{Microkernel}
-\subsection{USB in Microkernel}
-\subsubsection{Difficulties}
-\subsubsection{Solutionproposals}
+\section{USB}
+\subsection{Hardware}
+USB (Universal Serial Bus) is a serial bus.
+With USB it is possible to connect a lot of different types of devices with a host.
+Today the most common USB-devices are keyboards and mice. But also external storage, mobilephones and gadgets like a small rocketlauncher can be connected to a host by USB. USB supports hotplugging of USB-devices. That means connecting and disconnecting a USB-device to/from a running host and detecting the USB-device.
+There is a large amount of different USB-connectors (Type A, Type B, Mini A, Mini AB, Mini B, Micro AB, Micro B, Type C). They vary in size, profile, durability, compability and usability.
+The used pins used in USB 1.x/2.0 in each of the connectors are nearly the same.
+
+\begin{table}
+\centering
+\caption{USB 1.x/2.0 standard pinout}
+\begin{tabular}{|l|l|l|l|} \hline
+Pin & Name & Wire color & Description\\ \hline
+1 & $V_{BUS}$ & Red (or orange) & + 5 V\\ \hline
+2 & D- & White (or gold) & Data-\\ \hline
+3 & D+ & Green & Data+\\ \hline
+4 & GND & Black (or blue) & Ground\\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}
+\centering
+\caption{USB 1.x/2.0 mini/micro pinout}
+\begin{tabular}{|l|l|l|l|} \hline
+Pin & Name & Wire color & Description\\ \hline
+1 & $V_{BUS}$ & Red & + 5 V\\ \hline
+2 & D- & White & Data-\\ \hline
+3 & D+ & Green & Data+\\ \hline
+4 & ID &  & Detect which connector is connected\\ \hline
+5 & GND & Black & Ground\\ \hline
+\end{tabular}
+\end{table}
+
+Only USB 3.x varies a lot. But some USB 3.0 connectors are backwardcompatible.
+$V_{BUS}$ and GND supply the connected device with power varing from specification from 0.5 A to 3 A at 5 V in general. The wires in a USB-cable are twisted to reduce noise. The communication in USB 1.x/2.0 is half-duplex, USB 3.x is full-duplex.
+Depending on USB-version the datarate is 1.5 Mbit/s up to 10 Gbit/s. USB 2.0 has a datarate of 480 Mbit/s.
+\subsection{Software}
+\subsubsection{Device Class}
+To specify the functionality of a device class codes are used. They are communicated to the host to determine if the device is supported and if so decide which driver should be used for it. For example a device identifiying itself with the classcode $0E_h$ should be treated as a webcam providing a videosignal. In compare to that a device sending $03_h$ should be treated as a human-interface-device (keyboard, mouse, etc.)
+\subsubsection{Device Descriptors}
+\subsubsection{Endpoints}
+\section{Microkernel}
+\section{USB in Microkernel}
+\subsection{Difficulties}
+\subsection{Solutionproposals}
 \section{Conclusion}
 \section{}
 \section{Introduction}
@@ -354,13 +393,13 @@ details on each of these is found in the \textit{Author's Guide}.
 
 \begin{figure}
 \centering
-\epsfig{file=fly.eps}
+%\epsfig{file=fly.eps}
 \caption{A sample black and white graphic (.eps format).}
 \end{figure}
 
 \begin{figure}
 \centering
-\epsfig{file=fly.eps, height=1in, width=1in}
+%\epsfig{file=fly.eps, height=1in, width=1in}
 \caption{A sample black and white graphic (.eps format)
 that has been resized with the \texttt{epsfig} command.}
 \end{figure}
@@ -406,7 +445,7 @@ logarithm $z$: \begin{displaymath}{\log e^z = z}\end{displaymath}
 
 \begin{figure}
 \centering
-\psfig{file=rosette.ps, height=1in, width=1in,}
+%\psfig{file=rosette.ps, height=1in, width=1in,}
 \caption{A sample black and white graphic (.ps format) that has
 been resized with the \texttt{psfig} command.}
 \end{figure}
@@ -417,7 +456,7 @@ forms is given in the
 
 \begin{figure*}
 \centering
-\epsfig{file=flies.eps}
+%\epsfig{file=flies.eps}
 \caption{A sample black and white graphic (.eps format)
 that needs to span two columns of text.}
 \end{figure*}
