@@ -138,10 +138,10 @@ This paper also contains a small introduction in USB and microkernels for better
 
 \section{Introduction}
 \section{USB}
-\subsection{Hardware}
 USB (Universal Serial Bus) is a serial bus.
 With USB it is possible to connect a lot of different types of devices with a host.
 Today the most common USB-devices are keyboards and mice. But also external storage, mobilephones and gadgets like a small rocketlauncher can be connected to a host by USB. USB supports hotplugging of USB-devices. That means connecting and disconnecting a USB-device to/from a running host and detecting the USB-device.
+\subsection{Hardware}
 There is a large amount of different USB-connectors (Type A, Type B, Mini A, Mini AB, Mini B, Micro AB, Micro B, Type C). They vary in size, profile, durability, compability and usability.
 The used pins used in USB 1.x/2.0 in each of the connectors are nearly the same.
 
@@ -173,11 +173,28 @@ Pin & Name & Wire color & Description\\ \hline
 Only USB 3.x varies a lot. But some USB 3.0 connectors are backwardcompatible.
 $V_{BUS}$ and GND supply the connected device with power varing from specification from 0.5 A to 3 A at 5 V in general. The wires in a USB-cable are twisted to reduce noise. The communication in USB 1.x/2.0 is half-duplex, USB 3.x is full-duplex.
 Depending on USB-version the datarate is 1.5 Mbit/s up to 10 Gbit/s. USB 2.0 has a datarate of 480 Mbit/s.
-\subsection{Software}
-\subsubsection{Device Class}
-To specify the functionality of a device class codes are used. They are communicated to the host to determine if the device is supported and if so decide which driver should be used for it. For example a device identifiying itself with the classcode $0E_h$ should be treated as a webcam providing a videosignal. In compare to that a device sending $03_h$ should be treated as a human-interface-device (keyboard, mouse, etc.)
-\subsubsection{Device Descriptors}
+\subsection{Software} %http://www.beyondlogic.org/usbnutshell/usb1.shtml
+\subsubsection{Device Descriptor} %http://www.usb.org/developers
+The device descriptor specify a couple of informations about a device.
+All informations can be printed on the console of a linuxsystem by entering \emph{lsusb -v} in the console.
+\paragraph{USB Version}
+The devicedescriptor specify the used USB-version. By manipulating this field in the devicedescriptor, a USB 2.0 device can connect to a host as USB 1.1-device.
+\paragraph{Device Class}
+To specify the functionality of a device class codes are used. They are communicated to the host to determine if the device is supported and if so decide which driver should be used for it. For example a device identifiying itself with the classcode $0E_h$ should be treated as a webcam providing a videosignal. In compare to that a device sending $03_h$ should be treated as a human-interface-device (keyboard, mouse, etc.).
+If no devicespecific driver exists, in general a generic driver will try to control the device. If the manufacturer thinks none of the deviceclasses matches his needs, the manufacturer can decide to use a vendor specific class: $FF_h$. This might be a good idea for a USB-rocketlauncher.
+\paragraph{Device SubClass}
+The subclass specifies more detailed than the device class what the device is.
+\paragraph{Device Protocol}
+The protocol field defines a protocol which should be used to communicate with it.
+\paragraph{IDs \& Numbers}
+The devicedescriptor contains a vendor-id to identify the manufacturer of a device.
+To identify the product of a manufacturer, a product-id is used. To specify the hardwareconfiguration furthermore a device-release-number and a serial number can be specified.
 \subsubsection{Endpoints}
+Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints.
+\paragraph{Control Endpoint}
+\paragraph{Bulk Endpoint}
+\paragraph{Isochronus Endpoint}
+\paragraph{Interrupt Endpoint}
 \section{Microkernel}
 \section{USB in Microkernel}
 \subsection{Difficulties}
