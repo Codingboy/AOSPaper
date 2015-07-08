@@ -173,6 +173,7 @@ Pin & Name & Wire color & Description\\ \hline
 Only USB 3.x varies a lot. But some USB 3.0 connectors are backwardcompatible.
 $V_{BUS}$ and GND supply the connected device with power varing from specification from 0.5 A to 3 A at 5 V in general. The wires in a USB-cable are twisted to reduce noise. The communication in USB 1.x/2.0 is half-duplex, USB 3.x is full-duplex.
 Depending on USB-version the datarate is 1.5 Mbit/s up to 10 Gbit/s. USB 2.0 has a datarate of 480 Mbit/s.
+
 \subsection{Software} %http://www.beyondlogic.org/usbnutshell/usb1.shtml
 \subsubsection{Device Descriptor} %http://www.usb.org/developers
 The device descriptor specify a couple of informations about a device.
@@ -189,12 +190,17 @@ The protocol field defines a protocol which should be used to communicate with i
 \paragraph{IDs \& Numbers}
 The devicedescriptor contains a vendor-id to identify the manufacturer of a device.
 To identify the product of a manufacturer, a product-id is used. To specify the hardwareconfiguration furthermore a device-release-number and a serial number can be specified.
+
 \subsubsection{Endpoints}
-Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints.
+Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a crc-sum for each Endpoint except controlendpoints. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints.
 \paragraph{Control Endpoint}
+Controlendpoints are used for controltransfers. With them the device is configured. Every device has a controlendpoint (endpoint zero).
 \paragraph{Bulk Endpoint}
+Bulkendpoints are used for bulktransfers. Bulktransfers are non timecritically, large datatransfers for example a read-/writeoperation on a external storagedevice.
 \paragraph{Isochronus Endpoint}
+Isochronusendpoints are used for isochronustransfers. Isochronustransfers are used if a specific datarate is required.
 \paragraph{Interrupt Endpoint}
+Interruptendpoints are used for interrupttransfers. Other than expected in USB 2.0 and lower this endpoint does not really work with interrupts. Interrupttransfers are polled each x milliseconds. They are often used for human-interface-devices.
 \section{Microkernel}
 A microkernel ($\mu$-kernel) as opposed to a monolothic kernel has fewer code running in
 supervisor mode (kernel mode).
