@@ -196,6 +196,66 @@ Endpoints are used for communication. Each communication is directed to a specif
 \paragraph{Isochronus Endpoint}
 \paragraph{Interrupt Endpoint}
 \section{Microkernel}
+A microkernel ($\mu$-kernel) as opposed to a monolothic kernel has fewer code running in
+supervisor mode (kernel mode).
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{minixinternalstructure.png}
+\label{fig:minixmicarch}
+\caption{The microkernel architecture as provided by Minix [minixref]}
+\end{figure}
+The architecture in of microkernel based operating systems separates basic
+hardware functionality from other portions (as seen in Figure \ref{fig:minixmicarch}).
+The modularization, if stricly executed, makes it easier for developers to support new
+platforms since they only have to port the machine-dependent code for basic hardware functionality.
+[black92microkernel]
+The code for system specific functionality (services) runs in user mode and as such
+is not capable of interfering directly with hardware.
+This demonstrates a challenge for driver developers and requires a well-defined kernel API.
+Due to the separation and indirection it is believed that microkernels cannot perform as well as
+monolithic kernels.
+However, most of the performance issues of first generation microkernels were based on poor design
+and faulty implementations [p237-liedtke].
+Furthermore, device drivers implemented as services on microkernel operating systems can achieve
+almost the same performance as monolithic drivers [uldd].
+
+\subsection{Generations}
+The idea of a microkernel was introduced in the late 1980s, however at this point Unix [refunix]
+was already widely used and adopted.
+The concepts of Unix worked good enough around that time and BSD [refbsd] adoption of Unix started
+the era of big kernels through adding filesystems and a complete TCP/IP stack. [wiki]
+The amount of code in kernels grew fast and with each new code fragment the possibilities of
+freezing a system from within a faulty driver implementation increased.
+Supporters of microkernel based operating systems argued that user-level implemented TCP/IP drivers
+would simply restart the driver and leave the other OS functionality undamaged.
+The Mach [refmach] microkernel was developed as a replacement to the mentioned BSD Unix.
+It was developed from 1985 to the mid 90s at Carnegie Mellon University and is considered to be
+the system that defines the first generation of microkernels.
+
+Mach's external pager [p70liedtke] which manages physical and virtual memory in a way that allows
+user-level code to map files and databases into their address space without using the filesystem
+driver.
+It also llowed the usage of multiple systems simultaenously [p70liedtke].
+Another early idea was to implement Interrupt handling via Inter Process Communication (IPC).
+IPC is the core component of any microkernel based operating system.
+User-level servers can send/receive messages to/from the kernel or other user-level servers
+through the kernel.
+As one can see the implementation of the communication protocol is a bottleneck and optimization
+is necessary to meet the requirements of todays applications.
+Analysis of performance problems [p70liedtke] showed that user-kernel-mode switches, address-space
+switches and memory penalties also contributed to a bad performance.
+
+In the mid 90s development of new microkernels started.
+They were written from scratch rather than evolving from the present monolithic kernels.
+One of them was L4 [l4ref].
+L4 has three abstraction layers: address spaces, threads and IPC.
+Based on tests on a 486-DX5 machine the L4 microkernel RPC was twice as fast as a UNIX system call
+and 20 times faster than first generation IPC [p70liedtke].
+The address space concept removed another limitation of first generation microkernels.
+Basically you were allowed to recursively construct address spaces outside the kernel.
+Memory management concepts used in the L4 kernel interface were an extension of the external
+pager mechanisms presented in Mach kernels.
+
 \section{USB in Microkernel}
 \subsection{Difficulties}
 \subsection{Solutionproposals}
