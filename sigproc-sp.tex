@@ -262,7 +262,54 @@ Basically you were allowed to recursively construct address spaces outside the k
 Memory management concepts used in the L4 kernel interface were an extension of the external
 pager mechanisms presented in Mach kernels.
 
-\section{USB in Microkernel}
+\section{USB in Microkernels}
+Earlier we presented the basic architecture of USB and how communication works on the serial bus.
+In the previous chapter we've seen that microkernels are capable of accessing shared resources
+(e.g. a bus) through APIs.
+The obvious simple approach to support USB in a microkernel based operating system would be to provide
+a service for the interaction with the Host Controller (HC) and let USB device drivers use the HC service.
+If another USB device driver uses the HC service the URB coming from this device driver would be
+blocked or queued.
+This approach would work in a simple 1-to-1 relation when an operating system would just interact
+with one USB device.
+In real world scenarios however we often face situations where one application (client) uses one or more
+devices (interfacing with one or more device drivers), several applications use one or more devices or
+devices communicating with each other (data transfer between mass-storage devices).
+A simmple ''blocking'' approach does not suffice and another component has to be provided to create a working
+environment for USB device drivers.
+It has to
+\begin{itemize}
+\item create URBs based on certain scheduling parameters to avoid blocking
+\item fragment data so devices can be polled during huge data transfers
+\item prevent unauthorized bus access by other drivers
+\end{itemize}
+In this paper we try to present a separated USB service which will encapsulate this functionality.
+
+\subsection{USB service}
+We'll look at the Linux USB driver architecture to get an understanding of how to separate concerns
+in the handling of the USB protocol and introduce terms we'll be using when describing the design
+of the USB service.
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{usblinux.png}
+\label{fig:usblinux}
+\caption{Main components of the Linux USB driver}
+\end{figure}
+Figure \ref{fig:usblinux} shows how the operating system USB functionality can be split up into
+major components.
+The 3 components are:
+\begin{itemize}
+\item Driver for the Host Controller
+\item USBCore support library
+\item Drivers for USB devices
+\end{itemize}
+The USBCore library is used to abstract functionality of the Host Controller without knowing
+the details of the platform like handling interrupts, memory access and configuration.
+For the device drivers an interface is provided to manage memory and transfer data.
+In addition it provides the USB Request Block (URB) for the specific implementation and ways
+to communicate them.
+
+
 \subsection{Difficulties}
 \subsection{Solutionproposals}
 \section{Conclusion}
