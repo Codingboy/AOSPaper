@@ -138,6 +138,12 @@ This paper also contains a small introduction in USB and microkernels for better
 
 \section{Introduction}
 \section{USB}
+\begin{figure}
+\centering
+\includegraphics[width=0.2\textwidth]{usblogo.jpg}
+\label{fig:usblogo}
+\caption{USB 3.0 logo}
+\end{figure}
 USB (Universal Serial Bus) is a serial bus.
 With USB it is possible to connect a lot of different types of devices with a host.
 Today the most common USB-devices are keyboards and mice. But also external storage, mobilephones and gadgets like a small rocketlauncher can be connected to a host by USB. USB supports hotplugging of USB-devices. That means connecting and disconnecting a USB-device to/from a running host and detecting the USB-device.
@@ -177,7 +183,7 @@ Depending on USB-version the datarate is 1.5 Mbit/s up to 10 Gbit/s. USB 2.0 has
 \subsection{Software} %http://www.beyondlogic.org/usbnutshell/usb1.shtml
 \subsubsection{Device Descriptor} %http://www.usb.org/developers
 The device descriptor specify a couple of informations about a device.
-All informations can be printed on the console of a linuxsystem by entering \emph{lsusb -v} in the console.
+All informations can be printed on the console of a linuxsystem by entering \emph{lsusb -v} in the console. The devicedescriptor is only one descriptor from a small group. There exists the configurationdescriptor -- which describes how much power the device needs, which powermode is used (sleep, selfpowered, etc.), etc. -- , the endpointdescriptor -- described later -- , the interfaceendpoint -- which bundles a group of endpointdesciptors -- and stringdescriptors -- which contain a single string instead of hex-numbers.
 \paragraph{USB Version}
 The devicedescriptor specify the used USB-version. By manipulating this field in the devicedescriptor, a USB 2.0 device can connect to a host as USB 1.1-device.
 \paragraph{Device Class}
@@ -192,7 +198,20 @@ The devicedescriptor contains a vendor-id to identify the manufacturer of a devi
 To identify the product of a manufacturer, a product-id is used. To specify the hardwareconfiguration furthermore a device-release-number and a serial number can be specified.
 
 \subsubsection{Endpoints}
-Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a crc-sum for each Endpoint except controlendpoints. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints.
+Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a crc-sum for each Endpoint except controlendpoints. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints. Endpoints are configured in an endpointdescriptor. In general the communication has three parts:
+\begin{itemize}
+\item Token Packet
+\item Data Packet
+\item Handshake Packet
+\end{itemize}
+Tokenpackets specify the direction of the communication relative to the host. IN means, the host receives data from the device, OUT means the host sends data to the device.\\
+Datapackets contains the data or if the passive side of the communication is not ready, it can send STALL or do not respond within a few milliseconds.
+\begin{figure}
+\centering
+\includegraphics[width=0.4\textwidth]{interrupttransfer.png}
+\label{fig:interrupttransfer}
+\caption{Protocol of an interrupttransfer}
+\end{figure}
 \paragraph{Control Endpoint}
 Controlendpoints are used for controltransfers. With them the device is configured. Every device has a controlendpoint (endpoint zero).
 \paragraph{Bulk Endpoint}
