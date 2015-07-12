@@ -130,10 +130,9 @@ This paper also contains a small introduction in USB and microkernels for better
 %\terms{Theory}
 
 \keywords{USB, Microkernel, seL4} % NOT required for Proceedings
-
 \section{Introduction}
-In the 90's microkernels became more relevant and were developed more than before.
-1996 USB was introduced.
+In the late late 1990s microkernels became more relevant and were developed more than before. \cite{wiki3}
+1996 USB was introduced. \cite{wiki} \cite{wiki2}
 This paper is about bringing those two technologies together.\\
 Section \ref{sec:usb} is a small and general introduction in USB.
 Section \ref{sec:microkernel} describes the structure of a microkernel.
@@ -144,18 +143,18 @@ Section \ref{sec:both} describes problems that may occur in a microkernelenviron
 \centering
 \includegraphics[width=0.2\textwidth]{usblogo.jpg}
 \label{fig:usblogo}
-\caption{USB 3.0 logo}
+\caption{USB 3.0 logo \cite{usborg}}
 \end{figure}
 USB (Universal Serial Bus) is a serial bus.
 With USB it is possible to connect a lot of different types of devices with a host.
-Today the most common USB-devices are keyboards and mice. But also external storage, mobilephones and gadgets like a small rocketlauncher can be connected to a host by USB. USB supports hotplugging of USB-devices. That means connecting and disconnecting a USB-device to/from a running host and detecting the USB-device.
+Today the most common USB-devices are keyboards and mice. But also external storage, mobilephones and gadgets like a small rocketlauncher can be connected to a host by USB. USB supports hotplugging of USB-devices. That means connecting and disconnecting a USB-device to/from a running host and detecting the USB-device. \cite{wiki} \cite{wiki2}
 \subsection{Hardware}
 There is a large amount of different USB-connectors (Type A, Type B, Mini A, Mini AB, Mini B, Micro AB, Micro B, Type C). They vary in size, profile, durability, compability and usability.
-The used pins used in USB 1.x/2.0 in each of the connectors are nearly the same.
+The used pins used in USB 1.x/2.0 in each of the connectors are nearly the same. \cite{wiki} \cite{wiki2} \cite{usborg}
 
 \begin{table}
 \centering
-\caption{USB 1.x/2.0 standard pinout}
+\caption{USB 1.x/2.0 standard pinout \cite{wiki}}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red (or orange) & + 5 V\\ \hline
@@ -167,7 +166,7 @@ Pin & Name & Wire color & Description\\ \hline
 
 \begin{table}
 \centering
-\caption{USB 1.x/2.0 mini/micro pinout}
+\caption{USB 1.x/2.0 mini/micro pinout \cite{wiki}}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red & + 5 V\\ \hline
@@ -180,64 +179,64 @@ Pin & Name & Wire color & Description\\ \hline
 
 Only USB 3.x varies a lot. But some USB 3.0 connectors are backwardcompatible.
 $V_{BUS}$ and GND supply the connected device with power varing from specification from 0.5 A to 3 A at 5 V in general. The wires in a USB-cable are twisted to reduce noise. The communication in USB 1.x/2.0 is half-duplex, USB 3.x is full-duplex.
-Depending on USB-version the datarate is 1.5 Mbit/s up to 10 Gbit/s. USB 2.0 has a datarate of 480 Mbit/s.
+Depending on USB-version the datarate is 1.5 Mbit/s up to 10 Gbit/s. USB 2.0 has a datarate of 480 Mbit/s. \cite{wiki} \cite{wiki2} \cite{usborg} \cite{beyond}
 
 \subsection{Software} %http://www.beyondlogic.org/usbnutshell/usb1.shtml
 \subsubsection{Device Descriptor} %http://www.usb.org/developers
 The device descriptor specify a couple of informations about a device.
-All informations can be printed on the console of a linuxsystem by entering \emph{lsusb -v} in the console. The devicedescriptor is only one descriptor from a small group. There exists the configurationdescriptor -- which describes how much power the device needs, which powermode is used (sleep, selfpowered, etc.), etc. -- , the endpointdescriptor -- described later -- , the interfaceendpoint -- which bundles a group of endpointdesciptors -- and stringdescriptors -- which contain a single string instead of hex-numbers.
+All informations can be printed on the console of a linuxsystem by entering \emph{lsusb -v} in the console. The devicedescriptor is only one descriptor from a small group. There exists the configurationdescriptor -- which describes how much power the device needs, which powermode is used (sleep, selfpowered, etc.), etc. -- , the endpointdescriptor -- described later -- , the interfaceendpoint -- which bundles a group of endpointdesciptors -- and stringdescriptors -- which contain a single string instead of hex-numbers. \cite{beyond}
 \paragraph{USB Version}
-The devicedescriptor specify the used USB-version. By manipulating this field in the devicedescriptor, a USB 2.0 device can connect to a host as USB 1.1-device.
+The devicedescriptor specify the used USB-version. By manipulating this field in the devicedescriptor, a USB 2.0 device can connect to a host as USB 1.1-device. \cite{beyond}
 \paragraph{Device Class}
 To specify the functionality of a device class codes are used. They are communicated to the host to determine if the device is supported and if so decide which driver should be used for it. For example a device identifiying itself with the classcode $0E_h$ should be treated as a webcam providing a videosignal. In compare to that a device sending $03_h$ should be treated as a human-interface-device (keyboard, mouse, etc.).
-If no devicespecific driver exists, in general a generic driver will try to control the device. If the manufacturer thinks none of the deviceclasses matches his needs, the manufacturer can decide to use a vendor specific class: $FF_h$. This might be a good idea for a USB-rocketlauncher.
+If no devicespecific driver exists, in general a generic driver will try to control the device. If the manufacturer thinks none of the deviceclasses matches his needs, the manufacturer can decide to use a vendor specific class: $FF_h$. This might be a good idea for a USB-rocketlauncher. \cite{beyond} \cite{usborg}
 \paragraph{Device SubClass}
-The subclass specifies more detailed than the device class what the device is.
+The subclass specifies more detailed than the device class what the device is. \cite{beyond} \cite{usborg}
 \paragraph{Device Protocol}
-The protocol field defines a protocol which should be used to communicate with it.
+The protocol field defines a protocol which should be used to communicate with it. \cite{beyond} \cite{usborg}
 \paragraph{IDs \& Numbers}
 The devicedescriptor contains a vendor-id to identify the manufacturer of a device.
-To identify the product of a manufacturer, a product-id is used. To specify the hardwareconfiguration furthermore a device-release-number and a serial number can be specified.
+To identify the product of a manufacturer, a product-id is used. To specify the hardwareconfiguration furthermore a device-release-number and a serial number can be specified. \cite{beyond} \cite{usborg}
 
 \subsubsection{Endpoints}
-Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a CRC-sum for each Endpoint. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints. Endpoints are configured in an endpointdescriptor. In general the communication has three parts:
+Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a CRC-sum for each Endpoint. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints. Endpoints are configured in an endpointdescriptor. In general the communication has three parts: \cite{beyond}
 \begin{itemize}
 \item Token Packet
 \item Data Packet
 \item Handshake Packet
 \end{itemize}
 Tokenpackets specify the direction of the communication relative to the host. IN means, the host receives data from the device, OUT means the host sends data to the device.\\
-Datapackets contains the data or if the passive side of the communication is not ready, it can send STALL or do not respond within a few milliseconds.
+Datapackets contains the data or if the passive side of the communication is not ready, it can send STALL or do not respond within a few milliseconds. \cite{beyond}
 \begin{figure}
 \centering
 \includegraphics[width=0.4\textwidth]{interrupttransfer.png}
 \label{fig:interrupttransfer}
-\caption{Protocol of an interrupttransfer}
+\caption{Protocol of an interrupttransfer \cite{beyond}}
 \end{figure}
 \paragraph{Control Endpoint}
-Controlendpoints are used for controltransfers. With them the device is configured. Every device has a controlendpoint (endpoint zero).
+Controlendpoints are used for controltransfers. With them the device is configured. Every device has a controlendpoint (endpoint zero). \cite{beyond} \cite{wiki2}
 \paragraph{Bulk Endpoint}
-Bulkendpoints are used for bulktransfers. Bulktransfers are non timecritically, large datatransfers for example a read-/writeoperation on a external storagedevice.
+Bulkendpoints are used for bulktransfers. Bulktransfers are non timecritically, large datatransfers for example a read-/writeoperation on a external storagedevice. \cite{beyond} \cite{wiki2}
 \paragraph{Isochronus Endpoint}
-Isochronusendpoints are used for isochronustransfers. Isochronustransfers are used if a specific datarate is required.
+Isochronusendpoints are used for isochronustransfers. Isochronustransfers are used if a specific datarate is required. \cite{beyond} \cite{wiki2}
 \paragraph{Interrupt Endpoint}
-Interruptendpoints are used for interrupttransfers. Other than expected in USB 2.0 and lower this endpoint does not really work with interrupts. Interrupttransfers are polled each x milliseconds. They are often used for human-interface-devices.
+Interruptendpoints are used for interrupttransfers. Other than expected in USB 2.0 and lower this endpoint does not really work with interrupts. Interrupttransfers are polled each x milliseconds. They are often used for human-interface-devices. \cite{beyond} \cite{wiki2}
 \subsection{Packets}
-For the complete communication packets are used. Each message send from an endpoint and received from an endpoint is based on a simple USB-packet. The packetoverhead is only a few bytes depending on used USB-version. Depending on packettype the packet may contain the following data.
+For the complete communication packets are used. Each message send from an endpoint and received from an endpoint is based on a simple USB-packet. The packetoverhead is only a few bytes depending on used USB-version. Depending on packettype the packet may contain the following data. \cite{beyond}
 \paragraph{Sync}
-All packets start with a sync field. The field is used to synchronise the timing of transmitter and receiver.
+All packets start with a sync field. The field is used to synchronise the timing of transmitter and receiver. \cite{beyond}
 \paragraph{PID}
-To specify the content of a packet each sync field of a packet is followed by a PID-field. It contains a 4 bit information about the content. To ensure integrity the PID field contains twice the information to detect biterrors.
+To specify the content of a packet each sync field of a packet is followed by a PID-field. It contains a 4 bit information about the content. To ensure integrity the PID field contains twice the information to detect biterrors. \cite{beyond}
 \paragraph{ADDR}
-The ADDR field specifies a divice to communicate with.
+The ADDR field specifies a divice to communicate with. \cite{beyond}
 \paragraph{ENDP}
-The ENDP field specifies an endpoint which should receive the packet. Other Endpoints will not notice the packet at all.
+The ENDP field specifies an endpoint which should receive the packet. Other Endpoints will not notice the packet at all. \cite{beyond}
 \paragraph{Data}
-The datafield contains up to 1 KB custom data.
+The datafield contains up to 1 KB custom data. \cite{beyond}
 \paragraph{CRC}
-The CRC field contains a CRC sum \emph{only} of the datafield to ensure integrity of the data.
+The CRC field contains a CRC sum \emph{only} of the datafield to ensure integrity of the data. \cite{beyond}
 \paragraph{EOP}
-The EOP-field indicates the end of the package and is everytime the last in field in each package.
+The EOP-field indicates the end of the package and is everytime the last in field in each package. \cite{beyond}
 \section{Microkernel}
 \label{sec:microkernel}
 A microkernel ($\mu$-kernel) as opposed to a monolothic kernel has fewer code running in
@@ -421,7 +420,8 @@ Besides very few specifics our approach is identical.
 % initial runs of your .tex file to
 % produce the bibliography for the citations in your paper.
 \bibliographystyle{abbrv}
-\bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
+\bibliography{sigproc-sp}
+%\bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
 % You must have a proper ".bib" file
 %  and remember to run:
 % latex bibtex latex latex
