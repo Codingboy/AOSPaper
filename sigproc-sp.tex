@@ -30,13 +30,8 @@
 
 \begin{document}
 
-\title{A Sample {\ttlit ACM} SIG Proceedings Paper in LaTeX
-Format\titlenote{(Does NOT produce the permission block, copyright information nor page numbering). For use with ACM\_PROC\_ARTICLE-SP.CLS. Supported by ACM.}}
-\subtitle{[Extended Abstract]
-\titlenote{A full version of this paper is available as
-\textit{Author's Guide to Preparing ACM SIG Proceedings Using
-\LaTeX$2_\epsilon$\ and BibTeX} at
-\texttt{www.acm.org/eaddress.htm}}}
+\title{USB in a Microkernelenvironment}
+\subtitle{[Extended Abstract]}
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -96,10 +91,10 @@ Daniel Tkocz\\
 % author on the opening page (as the 'third row') but we ask,
 % for aesthetic reasons that you place these 'additional authors'
 % in the \additional authors block, viz.
-\additionalauthors{Additional authors: John Smith (The Th{\o}rv{\"a}ld Group,
-email: {\texttt{jsmith@affiliation.org}}) and Julius P.~Kumquat
-(The Kumquat Consortium, email: {\texttt{jpkumquat@consortium.net}}).}
-\date{30 July 1999}
+%\additionalauthors{Additional authors: John Smith (The Th{\o}rv{\"a}ld Group,
+%email: {\texttt{jsmith@affiliation.org}}) and Julius P.~Kumquat
+%(The Kumquat Consortium, email: {\texttt{jpkumquat@consortium.net}}).}
+%\date{30 July 1999}
 % Just remember to make sure that the TOTAL number of authors
 % is the number that will appear on the first page PLUS the
 % number that will appear in the \additionalauthors section.
@@ -107,7 +102,7 @@ email: {\texttt{jsmith@affiliation.org}}) and Julius P.~Kumquat
 \maketitle
 \begin{abstract}
 This paper provides an introduction in using USB in a microkernel.
-This paper also contains a small introduction in USB and microkernels for better understanding.
+This paper also contains a small introduction in USB and microkernels for better understanding. Problems that might occur are described and solutions are presented.
 %This paper provides a sample of a \LaTeX\ document which conforms to
 %the formatting guidelines for ACM SIG Proceedings.
 %It complements the document \textit{Author's Guide to Preparing
@@ -128,16 +123,23 @@ This paper also contains a small introduction in USB and microkernels for better
 \end{abstract}
 
 % A category with the (minimum) three required fields
-\category{H.4}{Information Systems Applications}{Miscellaneous}
+%\category{H.4}{Information Systems Applications}{Miscellaneous}
 %A category including the fourth, optional field follows...
-\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+%\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
 
-\terms{Theory}
+%\terms{Theory}
 
 \keywords{USB, Microkernel, seL4} % NOT required for Proceedings
 
 \section{Introduction}
+In the 90's microkernels became more relevant and were developed more than before.
+1996 USB was introduced.
+This paper is about bringing those two technologies together.\\
+Section \ref{sec:usb} is a small and general introduction in USB.
+Section \ref{sec:microkernel} describes the structure of a microkernel.
+Section \ref{sec:both} describes problems that may occur in a microkernelenvironment using USB and offers solutions.
 \section{USB}
+\label{sec:usb}
 \begin{figure}
 \centering
 \includegraphics[width=0.2\textwidth]{usblogo.jpg}
@@ -198,7 +200,7 @@ The devicedescriptor contains a vendor-id to identify the manufacturer of a devi
 To identify the product of a manufacturer, a product-id is used. To specify the hardwareconfiguration furthermore a device-release-number and a serial number can be specified.
 
 \subsubsection{Endpoints}
-Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a crc-sum for each Endpoint except controlendpoints. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints. Endpoints are configured in an endpointdescriptor. In general the communication has three parts:
+Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a CRC-sum for each Endpoint. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints. Endpoints are configured in an endpointdescriptor. In general the communication has three parts:
 \begin{itemize}
 \item Token Packet
 \item Data Packet
@@ -220,7 +222,24 @@ Bulkendpoints are used for bulktransfers. Bulktransfers are non timecritically, 
 Isochronusendpoints are used for isochronustransfers. Isochronustransfers are used if a specific datarate is required.
 \paragraph{Interrupt Endpoint}
 Interruptendpoints are used for interrupttransfers. Other than expected in USB 2.0 and lower this endpoint does not really work with interrupts. Interrupttransfers are polled each x milliseconds. They are often used for human-interface-devices.
+\subsection{Packets}
+For the complete communication packets are used. Each message send from an endpoint and received from an endpoint is based on a simple USB-packet. The packetoverhead is only a few bytes depending on used USB-version. Depending on packettype the packet may contain the following data.
+\paragraph{Sync}
+All packets start with a sync field. The field is used to synchronise the timing of transmitter and receiver.
+\paragraph{PID}
+To specify the content of a packet each sync field of a packet is followed by a PID-field. It contains a 4 bit information about the content. To ensure integrity the PID field contains twice the information to detect biterrors.
+\paragraph{ADDR}
+The ADDR field specifies a divice to communicate with.
+\paragraph{ENDP}
+The ENDP field specifies an endpoint which should receive the packet. Other Endpoints will not notice the packet at all.
+\paragraph{Data}
+The datafield contains up to 1 KB custom data.
+\paragraph{CRC}
+The CRC field contains a CRC sum \emph{only} of the datafield to ensure integrity of the data.
+\paragraph{EOP}
+The EOP-field indicates the end of the package and is everytime the last in field in each package.
 \section{Microkernel}
+\label{sec:microkernel}
 A microkernel ($\mu$-kernel) as opposed to a monolothic kernel has fewer code running in
 supervisor mode (kernel mode).
 \begin{figure}
@@ -282,6 +301,7 @@ Memory management concepts used in the L4 kernel interface were an extension of 
 pager mechanisms presented in Mach kernels.
 
 \section{USB in Microkernels}
+\label{sec:both}
 Earlier we presented the basic architecture of USB and how communication works on the serial bus.
 In the previous chapter we've seen that microkernels are capable of accessing shared resources
 (e.g. a bus) through APIs.
