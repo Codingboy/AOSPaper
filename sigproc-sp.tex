@@ -28,6 +28,9 @@
 
 \documentclass{acm_proc_article-sp}
 
+\usepackage{url} % for \url
+\usepackage{textcomp} % for ®,©,etc.
+
 \begin{document}
 
 \title{USB in a Microkernelenvironment}
@@ -129,14 +132,31 @@ This paper also contains a small introduction in USB and microkernels for better
 
 %\terms{Theory}
 
-\keywords{USB, Microkernel, seL4} % NOT required for Proceedings
+\keywords{USB, Microkernel} % NOT required for Proceedings
 \section{Introduction}
-In the late late 1990s microkernels became more relevant and were developed more than before. \cite{wiki3}
-1996 USB was introduced. \cite{wiki} \cite{wiki2}
-This paper is about bringing those two technologies together.\\
-Section \ref{sec:usb} is a small and general introduction in USB.
-Section \ref{sec:microkernel} describes the structure of a microkernel.
-Section \ref{sec:both} describes problems that may occur in a microkernelenvironment using USB and offers solutions.
+When the market for computers started to open programmers all over the world started developing
+operating systems.
+Some operating systems (e.g. UNIX) were using monolithic kernels which meant that a lot of code
+was working in kernel mode.
+Developers saw problems with this architecture and started the counter movement using microkernel
+based operating systems.
+Those kernels have small code footprint but pass messages to underlying services which facilitate
+the hardware for programmers.
+In the late 1990s microkernel development had its peak and todays work with microkernels is mostly
+based on the architectures from that era.
+
+1996 the Universal Serial Bus (USB) was developed.
+USB was an attempt to standardize communication components of computer peripherals and
+the protocols involved.
+The underlying communication bus is shared amongst devices and poses a problem in a microkernel
+operating system due to the separation of functionality in tasks.
+
+This paper presents a design, which will show how to support USB in microkernel based operating systems.
+In sections \ref{sec:usb} and \ref{sec:microkernel} the relevant parts of USB and microkernels are described
+to understand the terminology used in this paper.
+Section \ref{sec:both} describes problems that may occur in a microkernel environment using USB and the following
+section \ref{sec:serv} will provide a design which is capable of solving those problems.
+
 \section{USB}
 \label{sec:usb}
 \begin{figure}
@@ -145,16 +165,21 @@ Section \ref{sec:both} describes problems that may occur in a microkernelenviron
 \label{fig:usblogo}
 \caption{USB 3.0 logo \cite{usborg}}
 \end{figure}
-USB (Universal Serial Bus) is a serial bus.
+Universal Serial Bus (USB) is a serial bus.
 With USB it is possible to connect a lot of different types of devices with a host.
-Today the most common USB-devices are keyboards and mice. But also external storage, mobilephones and gadgets like a small rocketlauncher can be connected to a host by USB. USB supports hotplugging of USB-devices. That means connecting and disconnecting a USB-device to/from a running host and detecting the USB-device. \cite{wiki} \cite{wiki2}
+Today the most common USB devices are keyboards and mice.
+But also external storage, mobile phones and gadgets like a small rocket launcher can be connected to a host by USB.
+USB supports hot plugging of USB devices.
+That means connecting and disconnecting a USB device to/from a running host and detecting the USB device.
+
 \subsection{Hardware}
-There is a large amount of different USB-connectors (Type A, Type B, Mini A, Mini AB, Mini B, Micro AB, Micro B, Type C). They vary in size, profile, durability, compability and usability.
-The used pins used in USB 1.x/2.0 in each of the connectors are nearly the same. \cite{wiki} \cite{wiki2} \cite{usborg}
+There is a large amount of different USB connectors (Type A, Type B, Mini A, Mini AB, Mini B, Micro AB, Micro B, Type C \cite{usborg}).
+They vary in size, profile, durability, compatibility and usability \cite{dowell}.
+The pins used in USB 1.x/2.0 in each of the connectors are nearly the same.
 
 \begin{table}
 \centering
-\caption{USB 1.x/2.0 standard pinout \cite{wiki}}
+\caption{USB 1.x/2.0 standard pinout}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red (or orange) & + 5 V\\ \hline
@@ -166,7 +191,7 @@ Pin & Name & Wire color & Description\\ \hline
 
 \begin{table}
 \centering
-\caption{USB 1.x/2.0 mini/micro pinout \cite{wiki}}
+\caption{USB 1.x/2.0 mini/micro pinout}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red & + 5 V\\ \hline
@@ -177,123 +202,179 @@ Pin & Name & Wire color & Description\\ \hline
 \end{tabular}
 \end{table}
 
-Only USB 3.x varies a lot. But some USB 3.0 connectors are backwardcompatible.
-$V_{BUS}$ and GND supply the connected device with power varing from specification from 0.5 A to 3 A at 5 V in general. The wires in a USB-cable are twisted to reduce noise. The communication in USB 1.x/2.0 is half-duplex, USB 3.x is full-duplex.
-Depending on USB-version the datarate is 1.5 Mbit/s up to 10 Gbit/s. USB 2.0 has a datarate of 480 Mbit/s. \cite{wiki} \cite{wiki2} \cite{usborg} \cite{beyond}
+Only USB 3.x varies a lot. But some USB 3.0 connectors are backward compatible.
+$V_{BUS}$ and GND supply the connected device with power varying (depending on specification) from 0.5 A to 3 A at 5 V in general \cite{beyond}.
+The wires in a USB cable are twisted to reduce noise.
+The communication in USB 1.x/2.0 is half duplex, USB 3.x is full duplex.
+Depending on the USB version the transfer rate is 1.5 Mbit/s up to 10 Gbit/s.
+USB 2.0 has a transfer rate of 480 Mbit/s \cite{beyond}.
 
 \subsection{Software} %http://www.beyondlogic.org/usbnutshell/usb1.shtml
 \subsubsection{Device Descriptor} %http://www.usb.org/developers
-The device descriptor specify a couple of informations about a device.
-All informations can be printed on the console of a linuxsystem by entering \emph{lsusb -v} in the console. The devicedescriptor is only one descriptor from a small group. There exists the configurationdescriptor -- which describes how much power the device needs, which powermode is used (sleep, selfpowered, etc.), etc. -- , the endpointdescriptor -- described later -- , the interfaceendpoint -- which bundles a group of endpointdesciptors -- and stringdescriptors -- which contain a single string instead of hex-numbers. \cite{beyond}
+The device descriptor specifies a couple of informations about a device.
+All information can be printed on the console of a Linux system by entering \emph{lsusb -v} in a terminal.
+The device descriptor is only one descriptor from a small group.
+There are the configuration descriptors -- which describes how much power the device needs,
+which power mode is used (sleep, self powered, etc.), etc. -- ,
+the endpoint descriptor -- described later -- , the interface endpoint -- which bundles a group of
+endpoint descriptors -- and string descriptors -- which contain a single string instead of hex numbers \cite{beyond}.
+
 \paragraph{USB Version}
-The devicedescriptor specify the used USB-version. By manipulating this field in the devicedescriptor, a USB 2.0 device can connect to a host as USB 1.1-device. \cite{beyond}
+The device descriptor also holds the used USB version.
+By manipulating this field in the device descriptor, a USB 2.0 device can connect to a host as USB 1.1 device \cite{beyond}.
+
 \paragraph{Device Class}
-To specify the functionality of a device class codes are used. They are communicated to the host to determine if the device is supported and if so decide which driver should be used for it. For example a device identifiying itself with the classcode $0E_h$ should be treated as a webcam providing a videosignal. In compare to that a device sending $03_h$ should be treated as a human-interface-device (keyboard, mouse, etc.).
-If no devicespecific driver exists, in general a generic driver will try to control the device. If the manufacturer thinks none of the deviceclasses matches his needs, the manufacturer can decide to use a vendor specific class: $FF_h$. This might be a good idea for a USB-rocketlauncher. \cite{beyond} \cite{usborg}
+Class codes are used to specify the functionality of a device.
+They are communicated to the host to determine if the device is supported and if so decide which driver should be used for it.
+For example a device identifying itself with the class code $0E_h$ should be treated as a webcam providing a video signal.
+Compared to that a device sending $03_h$ should be treated as a human interface device (keyboard, mouse, etc.).
+If no device specific driver exists, in general a generic driver will try to control the device.
+If the manufacturer thinks none of the device classes matches the functionality, the manufacturer can decide to use a
+vendor specific class: $FF_h$ \cite{axel}.
+This might be a good idea for a USB rocket launcher.
+
 \paragraph{Device SubClass}
-The subclass specifies more detailed than the device class what the device is. \cite{beyond} \cite{usborg}
+The subclass specifies in detail what kind of device it is.
+
 \paragraph{Device Protocol}
-The protocol field defines a protocol which should be used to communicate with it. \cite{beyond} \cite{usborg}
+The protocol field defines a protocol which should be used to communicate with it.
+
 \paragraph{IDs \& Numbers}
-The devicedescriptor contains a vendor-id to identify the manufacturer of a device.
-To identify the product of a manufacturer, a product-id is used. To specify the hardwareconfiguration furthermore a device-release-number and a serial number can be specified. \cite{beyond} \cite{usborg}
+The device descriptor contains a vendor id to identify the manufacturer of a device.
+To identify the product of a manufacturer, a product id is used.
+To specify the hardware configuration furthermore a device release number and a serial number can be specified.
 
 \subsubsection{Endpoints}
-Endpoints are used for communication. Each communication is directed to a specific endpoint. A device/host might have multiple endpoints for different purposes. There are four different types of endpoints. The integrity of a transfer is secured by a CRC-sum for each Endpoint. To end a transfer, each mesage needs to be acknowleged except those from interruptendpoints. Endpoints are configured in an endpointdescriptor. In general the communication has three parts: \cite{beyond}
+Endpoints are used for communication.
+Each communication is directed to a specific endpoint.
+A device/host might have multiple endpoints for different purposes.
+There are four different types of endpoints.
+The integrity of a transfer is secured by a CRC sum for each endpoint.
+To end a transfer, each message needs to be acknowledged except those from interrupt endpoints.
+Endpoints are configured in an endpoint descriptor.
+In general the communicated data can be split in three parts: \cite{beyond}
 \begin{itemize}
 \item Token Packet
 \item Data Packet
 \item Handshake Packet
 \end{itemize}
-Tokenpackets specify the direction of the communication relative to the host. IN means, the host receives data from the device, OUT means the host sends data to the device.\\
-Datapackets contains the data or if the passive side of the communication is not ready, it can send STALL or do not respond within a few milliseconds. \cite{beyond}
+Token packets specify the direction of the communication relative to the host.
+IN means, the host receives data from the device, OUT means the host sends data to the device.\\
+
+Data packets contain the data or if the passive side of the communication is not ready, it can
+send STALL or do not respond within a few milliseconds \cite{beyond}.
 \begin{figure}
 \centering
 \includegraphics[width=0.4\textwidth]{interrupttransfer.png}
 \label{fig:interrupttransfer}
-\caption{Protocol of an interrupttransfer \cite{beyond}}
+\caption{Protocol of an interrupt transfer \cite{beyond}}
 \end{figure}
 \paragraph{Control Endpoint}
-Controlendpoints are used for controltransfers. With them the device is configured. Every device has a controlendpoint (endpoint zero). \cite{beyond} \cite{wiki2}
+Control endpoints are used for control transfers.
+With them the device is configured.
+Every device has a control endpoint (endpoint zero).
+
 \paragraph{Bulk Endpoint}
-Bulkendpoints are used for bulktransfers. Bulktransfers are non timecritically, large datatransfers for example a read-/writeoperation on a external storagedevice. \cite{beyond} \cite{wiki2}
+Bulk endpoints are used for bulk transfers.
+Bulk transfers are for non time critical transfers like large data transfers in a read/write operation on a external storage device.
+
 \paragraph{Isochronus Endpoint}
-Isochronusendpoints are used for isochronustransfers. Isochronustransfers are used if a specific datarate is required. \cite{beyond} \cite{wiki2}
+Isochronus endpoints are used for isochronus transfers.
+Isochronus transfers are used if a specific transfer rate is required.
+
 \paragraph{Interrupt Endpoint}
-Interruptendpoints are used for interrupttransfers. Other than expected in USB 2.0 and lower this endpoint does not really work with interrupts. Interrupttransfers are polled each x milliseconds. They are often used for human-interface-devices. \cite{beyond} \cite{wiki2}
+Interrupt endpoints are used for interrupt transfers.
+Surprisinglythis endpoint does not really work with interrupts in USB 2.0 or earlier versions.
+Interrupt endpoints are polled each \emph{x} milliseconds.
+They are often used for human interface devices.
+
 \subsection{Packets}
-For the complete communication packets are used. Each message send from an endpoint and received from an endpoint is based on a simple USB-packet. The packetoverhead is only a few bytes depending on used USB-version. Depending on packettype the packet may contain the following data. \cite{beyond}
+For the wholecommunication packets are used.
+Each message send from an endpoint and received from an endpoint is based on a simple USB packet.
+The packet overhead is only a few bytes depending on the used USB version.
+The type of a packet determines what kind of data it can contain.
+
 \paragraph{Sync}
-All packets start with a sync field. The field is used to synchronise the timing of transmitter and receiver. \cite{beyond}
+All packets start with a sync field.
+The field is used to synchronize the timing of transmitter and receiver.
+
 \paragraph{PID}
-To specify the content of a packet each sync field of a packet is followed by a PID-field. It contains a 4 bit information about the content. To ensure integrity the PID field contains twice the information to detect biterrors. \cite{beyond}
+To specify the content of a packet each sync field of a packet is followed by a PID field.
+It contains a 4 bit information about the content.
+To ensure integrity the PID field contains twice the information to detect bit errors.
+
 \paragraph{ADDR}
-The ADDR field specifies a divice to communicate with. \cite{beyond}
+The ADDR field specifies a device to communicate with.
+
 \paragraph{ENDP}
-The ENDP field specifies an endpoint which should receive the packet. Other Endpoints will not notice the packet at all. \cite{beyond}
+The ENDP field specifies an endpoint which should receive the packet.
+Other Endpoints will not notice the packet at all.
+
 \paragraph{Data}
-The datafield contains up to 1 KB custom data. \cite{beyond}
+The data field contains up to 1 KB of custom data \cite{beyond}.
+
 \paragraph{CRC}
-The CRC field contains a CRC sum \emph{only} of the datafield to ensure integrity of the data. \cite{beyond}
+The CRC field contains a CRC sum of the data field \emph{only} to ensure integrity of the data.
+
 \paragraph{EOP}
-The EOP-field indicates the end of the package and is everytime the last in field in each package. \cite{beyond}
+The EOP field indicates the end of the package and is always the last in field in each package.
+
 \section{Microkernel}
 \label{sec:microkernel}
-A microkernel ($\mu$-kernel) as opposed to a monolothic kernel has fewer code running in
+A microkernel ($\mu$-kernel) as opposed to a monolithic kernel has fewer code running in
 supervisor mode (kernel mode).
 \begin{figure}
 \centering
 \includegraphics[width=0.4\textwidth]{minixinternalstructure.png}
 \label{fig:minixmicarch}
-\caption{The microkernel architecture as provided by Minix [minixref]}
+\caption{The microkernel architecture as provided by Minix \cite{minix}}
 \end{figure}
 The architecture in of microkernel based operating systems separates basic
 hardware functionality from other portions (as seen in Figure \ref{fig:minixmicarch}).
-The modularization, if stricly executed, makes it easier for developers to support new
-platforms since they only have to port the machine-dependent code for basic hardware functionality.
-[black92microkernel]
+The modularization, if strictly executed, makes it easier for developers to support new
+platforms since they only have to port the machine-dependent code for basic hardware functionality \cite{black92}.
 The code for system specific functionality (services) runs in user mode and as such
 is not capable of interfering directly with hardware.
 This demonstrates a challenge for driver developers and requires a well-defined kernel API.
 Due to the separation and indirection it is believed that microkernels cannot perform as well as
 monolithic kernels.
 However, most of the performance issues of first generation microkernels were based on poor design
-and faulty implementations [p237-liedtke].
+and faulty implementations \cite{p237-liedtke}.
 Furthermore, device drivers implemented as services on microkernel operating systems can achieve
-almost the same performance as monolithic drivers [uldd].
+almost the same performance as monolithic drivers \cite{uldd}.
 
 \subsection{Generations}
-The idea of a microkernel was introduced in the late 1980s, however at this point Unix [refunix]
+The idea of a microkernel was introduced in the late 1980s, however at this point Unix \cite{unix}
 was already widely used and adopted.
-The concepts of Unix worked good enough around that time and BSD [refbsd] adoption of Unix started
-the era of big kernels through adding filesystems and a complete TCP/IP stack. [wiki]
+The concepts of Unix worked good enough around that time and BSD \cite{bsd} adoption of Unix started
+the era of big kernels through adding filesystems and a complete TCP/IP stack. %[wiki]
 The amount of code in kernels grew fast and with each new code fragment the possibilities of
 freezing a system from within a faulty driver implementation increased.
 Supporters of microkernel based operating systems argued that user-level implemented TCP/IP drivers
 would simply restart the driver and leave the other OS functionality undamaged.
-The Mach [refmach] microkernel was developed as a replacement to the mentioned BSD Unix.
+The Mach \cite{mach} microkernel was developed as a replacement to the mentioned BSD Unix.
 It was developed from 1985 to the mid 90s at Carnegie Mellon University and is considered to be
 the system that defines the first generation of microkernels.
 
-Mach's external pager [p70liedtke] which manages physical and virtual memory in a way that allows
+Mach's external pager \cite{p70liedtke} which manages physical and virtual memory in a way that allows
 user-level code to map files and databases into their address space without using the filesystem
 driver.
-It also allowed the usage of multiple systems simultaenously [p70liedtke].
+It also allowed the usage of multiple systems simultaneously.
 Another early idea was to implement Interrupt handling via Inter Process Communication (IPC).
 IPC is the core component of any microkernel based operating system.
 User-level servers can send/receive messages to/from the kernel or other user-level servers
 through the kernel.
 As one can see the implementation of the communication protocol is a bottleneck and optimization
 is necessary to meet the requirements of todays applications.
-Analysis of performance problems [p70liedtke] showed that user-kernel-mode switches, address-space
+Analysis of performance problems \cite{p70liedtke} showed that user-kernel-mode switches, address-space
 switches and memory penalties also contributed to a bad performance.
 
 In the mid 90s development of new microkernels started.
 They were written from scratch rather than evolving from the present monolithic kernels.
-One of them was L4 [l4ref].
+One of them was L4 \cite{l4}.
 L4 has three abstraction layers: address spaces, threads and IPC.
 Based on tests on a 486-DX5 machine the L4 microkernel RPC was twice as fast as a UNIX system call
-and 20 times faster than first generation IPC [p70liedtke].
+and 20 times faster than first generation IPC \cite{p70liedtke}.
 The address space concept removed another limitation of first generation microkernels.
 Basically you were allowed to recursively construct address spaces outside the kernel.
 Memory management concepts used in the L4 kernel interface were an extension of the external
@@ -313,7 +394,7 @@ with one USB device.
 In real world scenarios however we often face situations where one application (client) uses one or more
 devices (interfacing with one or more device drivers), several applications use one or more devices or
 devices communicating with each other (data transfer between mass-storage devices).
-A simmple ''blocking'' approach does not suffice and another component has to be provided to create a working
+A simple ''blocking'' approach does not suffice and another component has to be provided to create a working
 environment for USB device drivers.
 It has to
 \begin{itemize}
@@ -324,6 +405,7 @@ It has to
 In this paper we try to present a separated USB service which will encapsulate this functionality.
 
 \section{USB service}
+\label{sec:serv}
 We'll look at the Linux USB driver architecture to get an understanding of how to separate concerns
 in the handling of the USB protocol and introduce terms we'll be using when describing the design
 of the USB service.
@@ -361,7 +443,7 @@ for this driver and capability based access control.
 \subsection{Scheduling}
 Looking at URBs in a queue and deciding which URB to pick and send to the bus is called
 scheduling.
-While there are scheduling algorithms in hardware which can even be configured [chs-ERSA03.pdf]
+While there are scheduling algorithms in hardware which can even be configured \cite{chs-ERSA03}
 we will not consider those in the solution provided since it should be possible to implement
 the design on any microkernel.
 Using scheduling algorithms which decide based on the priority of tasks, such as Fixed priority
@@ -411,7 +493,7 @@ systems with lots of user interaction (Keyboards, etc.).
 
 \section{Acknowledgments}
 We'd like to thank Daniel Ernst and Matthias Jurisch
-of Hochschule RheinMain for their design proposal [ref]
+of RheinMain University of Applied Science for their design proposal \cite{ernst}
 which originated from the same ideas we have.
 Besides very few specifics our approach is identical.
 
@@ -430,52 +512,4 @@ Besides very few specifics our approach is identical.
 % ACM needs 'a single self-contained file'!
 %
 %APPENDICES are optional
-%\balancecolumns
-\appendix
-%Appendix A
-\section{Headings in Appendices}
-The rules about hierarchical headings discussed above for
-the body of the article are different in the appendices.
-In the \textbf{appendix} environment, the command
-\textbf{section} is used to
-indicate the start of each Appendix, with alphabetic order
-designation (i.e. the first is A, the second B, etc.) and
-a title (if you include one).  So, if you need
-hierarchical structure
-\textit{within} an Appendix, start with \textbf{subsection} as the
-highest level. Here is an outline of the body of this
-document in Appendix-appropriate form:
-\subsection{Introduction}
-\subsection{The Body of the Paper}
-\subsubsection{Type Changes and  Special Characters}
-\subsubsection{Math Equations}
-\paragraph{Inline (In-text) Equations}
-\paragraph{Display Equations}
-\subsubsection{Citations}
-\subsubsection{Tables}
-\subsubsection{Figures}
-\subsubsection{Theorem-like Constructs}
-\subsubsection*{A Caveat for the \TeX\ Expert}
-\subsection{Conclusions}
-\subsection{Acknowledgments}
-\subsection{Additional Authors}
-This section is inserted by \LaTeX; you do not insert it.
-You just add the names and information in the
-\texttt{{\char'134}additionalauthors} command at the start
-of the document.
-\subsection{References}
-Generated by bibtex from your ~.bib file.  Run latex,
-then bibtex, then latex twice (to resolve references)
-to create the ~.bbl file.  Insert that ~.bbl file into
-the .tex source file and comment out
-the command \texttt{{\char'134}thebibliography}.
-% This next section command marks the start of
-% Appendix B, and does not continue the present hierarchy
-\section{More Help for the Hardy}
-The acm\_proc\_article-sp document class file itself is chock-full of succinct
-and helpful comments.  If you consider yourself a moderately
-experienced to expert user of \LaTeX, you may find reading
-it useful but please remember not to change it.
-\balancecolumns
-% That's all folks!
 \end{document}
