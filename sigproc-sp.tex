@@ -278,7 +278,7 @@ the system that defines the first generation of microkernels.
 Mach's external pager [p70liedtke] which manages physical and virtual memory in a way that allows
 user-level code to map files and databases into their address space without using the filesystem
 driver.
-It also llowed the usage of multiple systems simultaenously [p70liedtke].
+It also allowed the usage of multiple systems simultaenously [p70liedtke].
 Another early idea was to implement Interrupt handling via Inter Process Communication (IPC).
 IPC is the core component of any microkernel based operating system.
 User-level servers can send/receive messages to/from the kernel or other user-level servers
@@ -353,7 +353,7 @@ An USB service would have to implement the USBCore functionality so that specifi
 USB drivers can be implemented without wrestling with too many problems.
 If we consider the 3 functionalities to provide a working USB environment we'll see the 2
 main problems: deciding which URBs to send and authorize access.
-Not providing a solution to eEither one of those problems could result in data loss,
+Not providing a solution to either one of those problems could result in data loss,
 data corruption or even broken hardware.
 We can solve those problems by providing a queue for each driver which will hold the URBs
 for this driver and capability based access control.
