@@ -467,8 +467,20 @@ driver.
 That way would result in an IPC even if the device driver has nothing to transmit as of the
 time the server checks if there are URBs ready.
 
-%\subsection{Access control}
+\subsection{Access control}
 %TODO
+One may not want to allow every application to access devices using USB. One scenario might be if an external data storage is fully loaded by a low priority task (e.g. writing logfiles) while a high priority task tries to access the device (e.g. storing data during emergency shutdown) but can not due to the low priority task. To handle such scenarios access rights management is required.
+Both techniques that will be introduced are reliable. The one big difference is which object the rights are attached to.
+
+\paragraph{Capabilities}
+To enforce access control, seL4 uses capabilities.
+A capability is a list of object right pairs which is attached to an object \emph{a}.
+Every time an object \emph{a}  tries to access another \emph{b}, it is checked if \emph{a} might access \emph{b} in the way \emph{a} is trying to.
+
+\paragraph{Access Control List}
+Access Control Lists (ACLs) are another possibility to encorce access control.
+An ACL is a list ob object right pairs which is attached to an object \emph{b}.
+If an object \emph{a} tries to access \emph{b} it is checked in the ACL of \emph{b} if a might do that operation.
 
 %\subsection{Design}
 %TODO
