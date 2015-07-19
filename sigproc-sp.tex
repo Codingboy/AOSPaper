@@ -491,18 +491,49 @@ In contrast ACLs are attached to an object \emph{b}.
 If an object \emph{a} tries to access \emph{b} it is checked in the ACL of \emph{b} if a might do that operation.
 ACLs control by which object an object might be accessed.
 
-\subsection{Concept}
 We decided to use capabilities to grant access to applications to send URBs
 via the USB library offered by the USB service.
 In a capability based system the mere posession of a capability entitles
 the application to send URBs and there is no need for the USB service to
 check any rights during posession.
 An owner of a device, probably the application which first opens the device,
-is allowed to add capabilities to the system.
+is allowed to change USB capabilities in the system.
 It may also exclusively block the device.
 This may be relevant in USB adapters for terminals for example.
 The owner may also specify a default capability which is given to any
 application by default when opening the device.
+
+\subsection{Architecture}
+Users will access USB components via a service library API of the USB service.
+In forwarding direction the application uses the library to send specific data
+over USB in which case the call is merely forwarded to the USB device driver
+(i.e. keyboard, mouse, etc.).
+The device driver will then create URBs and queue them in the device driver.
+In figure \ref{fig:usbsched} you can see (in red) a periodic task of the USB service
+which will check each device driver queue for URBs and put them on the host controller.
+This will be done in a round robin fashion to prevent devices to spam URBs.
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{usbsched.png}
+\caption{Scheduling of the USB service}
+\label{fig:usbsched}
+\end{figure}
+The device drivers will then create appropriate data structures and send them
+to the USB service which can then call appropriate installed handlers.
+Those handlers may be setup by the application using the library to handle
+asynchronous data transfers or they can be wrapped by the library internally
+in order to simulate synchronous calls.
+
+In order to gain access to USB devices an application uses the library
+to open it.
+It is then considered an owner of that device.
+An operating system task may then use this ownership to change capabilities
+for any accessing application.
+If there is no such capability for an application a default capability will
+be granted which doesn't allow any operation for that application.
+How those capabilities may actually look like in a real world application
+is out of the scope of this paper.
+An application could be identified by the process name or functionality.
 
 \section{Conclusions}
 While designing the USB server it seemed the problems to be
@@ -513,6 +544,7 @@ of USB request blocks.
 Therefore even the Linux device drivers can be ported
 to microkernels by sending the URBs to the server and not to
 the Linux kernel itself.
+
 The usb server considers all device drivers and URBs to have
 an equal priority which is not really real world applicable.
 Future work should provide a parameter to the scheduling system
@@ -520,7 +552,7 @@ which gives the server a hint which URB queues to check
 more often.
 This would result in a scheduler that's no longer completly
 fair but which may be better suited for realtime systems or
-systems with lots of user interaction (Keyboards, etc.).
+systems with lots of user interaction (keyboards, etc.).
 
 \section{Acknowledgments}
 We'd like to thank Daniel Ernst and Matthias Jurisch
