@@ -475,12 +475,14 @@ Both techniques that will be introduced are reliable. The one big difference is 
 \paragraph{Capabilities}
 To enforce access control, seL4 uses capabilities.
 A capability is a list of object right pairs which is attached to an object \emph{a}.
-Every time an object \emph{a}  tries to access another \emph{b}, it is checked if \emph{a} might access \emph{b} in the way \emph{a} is trying to.
+Every time an object \emph{a}  tries to access another \emph{b}, it is checked if \emph{a} might access \emph{b} in the way \emph{a} is trying to. Capabilities control which objects are allowed to access.
 
 \paragraph{Access Control List}
 Access Control Lists (ACLs) are another possibility to encorce access control.
 An ACL is a list ob object right pairs which is attached to an object \emph{b}.
+Like a capability an ACL is a number of object right pairs. But in different to cpabilities an ACL is attached to an object \emph{b}.
 If an object \emph{a} tries to access \emph{b} it is checked in the ACL of \emph{b} if a might do that operation.
+ACLs control by which object an object might be accessed.
 
 %\subsection{Design}
 %TODO
