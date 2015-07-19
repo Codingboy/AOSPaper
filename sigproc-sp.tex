@@ -469,23 +469,40 @@ time the server checks if there are URBs ready.
 
 \subsection{Access control}
 %TODO
-One may not want to allow every application to access devices using USB. One scenario might be if an external data storage is fully loaded by a low priority task (e.g. writing logfiles) while a high priority task tries to access the device (e.g. storing data during emergency shutdown) but can not due to the low priority task. To handle such scenarios access rights management is required.
-Both techniques that will be introduced are reliable. The one big difference is which object the rights are attached to.
+One may not want to allow any application to access devices using USB.
+One scenario might be that an external data storage is fully loaded by a low priority
+task (e.g. writing logfiles) while a high priority task tries to access the device (e.g. storing
+data during emergency shutdown) but can not due to the low priority task.
+To handle such scenarios access rights management is required.
+Both techniques that will be introduced are reliable.
+The one big difference is which object the rights are attached to.
 
 \paragraph{Capabilities}
-To enforce access control, seL4 uses capabilities.
-A capability is a list of object right pairs which is attached to an object \emph{a}.
-Every time an object \emph{a}  tries to access another \emph{b}, it is checked if \emph{a} might access \emph{b} in the way \emph{a} is trying to. Capabilities control which objects are allowed to access.
+To enforce access control, some operating systems like seL4 microkernel based ones \cite{sel4} use capabilities.
+A capability is a list of \emph{object} right pairs which is attached to an object \emph{a}.
+Every time an object \emph{a}  tries to access another \emph{b}, it is checked if
+\emph{a} might access \emph{b} in the way \emph{a} is trying to.
+Capabilities control which objects are allowed to access.
 
 \paragraph{Access Control List}
-Access Control Lists (ACLs) are another possibility to encorce access control.
-An ACL is a list ob object right pairs which is attached to an object \emph{b}.
-Like a capability an ACL is a number of object right pairs. But in different to cpabilities an ACL is attached to an object \emph{b}.
+Access Control List (ACL) is another mechanism to encorce access control.
+ACL is a list of \emph{domain} right pairs which is attached to an object \emph{b}.
+In contrast ACLs are attached to an object \emph{b}.
 If an object \emph{a} tries to access \emph{b} it is checked in the ACL of \emph{b} if a might do that operation.
 ACLs control by which object an object might be accessed.
 
-%\subsection{Design}
-%TODO
+\subsection{Concept}
+We decided to use capabilities to grant access to applications to send URBs
+via the USB library offered by the USB service.
+In a capability based system the mere posession of a capability entitles
+the application to send URBs and there is no need for the USB service to
+check any rights during posession.
+An owner of a device, probably the application which first opens the device,
+is allowed to add capabilities to the system.
+It may also exclusively block the device.
+This may be relevant in USB adapters for terminals for example.
+The owner may also specify a default capability which is given to any
+application by default when opening the device.
 
 \section{Conclusions}
 While designing the USB server it seemed the problems to be
