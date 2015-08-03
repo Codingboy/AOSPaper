@@ -286,13 +286,13 @@ in read/write operations on external storage devices. \cite{usb}
 
 \item[Isochronous endpoint]
 Isochronous endpoints are used for isochronous transfers.
-Isochronous transfers are used if a specific transfer rate is required. \cite{usb}\cite{beyond}
+Isochronous transfers are used if a specific transfer rate is required. \cite{usb}
 
 \item[Interrupt endpoint]
 Interrupt endpoints are used for interrupt transfers.
 Surprisingly this endpoint does not really work with interrupts in USB 2.0 or earlier versions.
 Interrupt endpoints are polled each \emph{x} milliseconds.
-They are often used for human interface devices. \cite{usb}\cite{beyond}
+They are often used for human interface devices. \cite{usb}
 
 \end{description}
 
@@ -305,7 +305,7 @@ The type of a packet determines what kind of data it contains.
 \begin{description}
 \item[Sync]
 All packets start with a sync field.
-This field is used to synchronize the timing of transmitter and receiver. \cite{usb}\cite{beyond}
+This field is used to synchronize the timing of transmitter and receiver. \cite{usb}
 
 \item[PID]
 To specify the content of a packet each sync field of a packet is followed by a PID field.
@@ -313,20 +313,20 @@ It contains a 4 bit information about the content.
 To ensure integrity, the PID field contains twice the information to detect bit errors.
 
 \item[ADDR]
-The ADDR field specifies a device to communicate with. \cite{usb}\cite{beyond}
+The ADDR field specifies a device to communicate with. \cite{usb}
 
 \item[ENDP]
 The ENDP field specifies an endpoint which should receive the packet.
-Other Endpoints will not notice the packet at all. \cite{usb}\cite{beyond}
+Other Endpoints will not notice the packet at all. \cite{usb}
 
 \item[Data]
-The data field contains up to 1 KB of custom data. \cite{usb}\cite{beyond}
+The data field contains up to 1 KB of custom data. \cite{usb}
 
 \item [CRC]
-The CRC field contains a CRC sum of the data field \emph{only} to ensure integrity of the data. \cite{usb}\cite{beyond}
+The CRC field contains a CRC sum of the data field \emph{only} to ensure integrity of the data. \cite{usb}
 
 \item[EOP]
-The EOP field indicates the end of the package and is always the last in field in each package. \cite{usb}\cite{beyond}
+The EOP field indicates the end of the package and is always the last in field in each package. \cite{usb}
 
 \end{description}
 
