@@ -7,3 +7,4 @@
 - Nutshell not a good reference when citing protocol information (use the specification itself maybe?)
 - Show and explain the USB protocol rather than hardware bits (see example of TCP protocol definition or
   others in RFC).
+- In subsection{Endpoints} is it the passive side who sends a STALL? Please review.
