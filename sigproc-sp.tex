@@ -170,10 +170,12 @@ That means connecting, disconnecting and detecting a USB device to/from a runnin
 There is a large amount of different USB connectors (Type A, Type B, Mini A, Mini AB, Mini B, Micro AB, Micro B, Type C \cite{usborg}).
 They vary in size, profile, durability, compatibility and usability \cite{dowell}.
 The pins used in USB 1.x/2.0 in each of the connectors are nearly the same.
+Small differences of pinconfigurations can be seen in figure \ref{fig:usb1} and figure  \ref{fig:usb2}.
 
 \begin{table}
 \centering
 \caption{USB 1.x/2.0 standard pinout}
+\label{fig:usb1}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red (or orange) & + 5 V\\ \hline
@@ -186,6 +188,7 @@ Pin & Name & Wire color & Description\\ \hline
 \begin{table}
 \centering
 \caption{USB 1.x/2.0 mini/micro pinout}
+\label{fig:usb2}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red & + 5 V\\ \hline
@@ -261,6 +264,7 @@ IN means, the host receives data from the device, OUT means the host sends data 
 Data packets contain the data.
 The passive side of the communication can send a STALL or not respond within a few milliseconds
 \cite{beyond}.
+Figure \ref{fig:interrupttransfer} shows which flags can be send during an interrupt transfer.
 
 \begin{figure}[!h]
 \centering
@@ -273,22 +277,22 @@ The passive side of the communication can send a STALL or not respond within a f
 \item[Control endpoint]
 Control endpoints are applied for control transfers and device configuration.
 With them the device is configured.
-Every device has a control endpoint (endpoint zero).
+Every device has a control endpoint (endpoint zero). \cite{usb}\cite{beyond}
 
 \item[Bulk endpoint]
 Bulk endpoints are used for bulk transfers.
-These non-time-critical transfers are applied for transferring large data
-in read/write operations on external storage devices.
+These non-time-critical transfers are applied for transfering large data
+in read/write operations on external storage devices. \cite{usb}\cite{beyond}
 
 \item[Isochronous endpoint]
 Isochronous endpoints are used for isochronous transfers.
-Isochronous transfers are used if a specific transfer rate is required.
+Isochronous transfers are used if a specific transfer rate is required. \cite{usb}\cite{beyond}
 
 \item[Interrupt endpoint]
 Interrupt endpoints are used for interrupt transfers.
 Surprisingly this endpoint does not really work with interrupts in USB 2.0 or earlier versions.
 Interrupt endpoints are polled each \emph{x} milliseconds.
-They are often used for human interface devices.
+They are often used for human interface devices. \cite{usb}\cite{beyond}
 
 \end{description}
 
@@ -301,7 +305,7 @@ The type of a packet determines what kind of data it contains.
 \begin{description}
 \item[Sync]
 All packets start with a sync field.
-This field is used to synchronize the timing of transmitter and receiver.
+This field is used to synchronize the timing of transmitter and receiver. \cite{usb}\cite{beyond}
 
 \item[PID]
 To specify the content of a packet each sync field of a packet is followed by a PID field.
@@ -309,20 +313,20 @@ It contains a 4 bit information about the content.
 To ensure integrity, the PID field contains twice the information to detect bit errors.
 
 \item[ADDR]
-The ADDR field specifies a device to communicate with.
+The ADDR field specifies a device to communicate with. \cite{usb}\cite{beyond}
 
 \item[ENDP]
 The ENDP field specifies an endpoint which should receive the packet.
-Other Endpoints will not notice the packet at all.
+Other Endpoints will not notice the packet at all. \cite{usb}\cite{beyond}
 
 \item[Data]
-The data field contains up to 1 KB of custom data \cite{beyond}.
+The data field contains up to 1 KB of custom data. \cite{usb}\cite{beyond}
 
 \item [CRC]
-The CRC field contains a CRC sum of the data field \emph{only} to ensure integrity of the data.
+The CRC field contains a CRC sum of the data field \emph{only} to ensure integrity of the data. \cite{usb}\cite{beyond}
 
 \item[EOP]
-The EOP field indicates the end of the package and is always the last in field in each package.
+The EOP field indicates the end of the package and is always the last in field in each package. \cite{usb}\cite{beyond}
 
 \end{description}
 

@@ -1,10 +1,6 @@
-- Add missing references to tables/figures/etc.
-- WTF? "I wondered a bit that in section 2.3 the paragraph "Data" is referenced, but what about the
-       other paragraphs"
 - We use \emph{d} and \emph{o} in the capabilities section. Maybe add a figure that shows them in use
   (a table?).
 - Microkernels section too big, design section too small.
 - Nutshell not a good reference when citing protocol information (use the specification itself maybe?)
 - Show and explain the USB protocol rather than hardware bits (see example of TCP protocol definition or
   others in RFC).
-- In subsection{Endpoints} is it the passive side who sends a STALL? Please review.
