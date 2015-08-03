@@ -213,11 +213,12 @@ which power mode is used (sleep, self powered, etc.) -- ,
 the endpoint descriptor -- described later -- , the interface endpoint -- which bundles a group of
 endpoint descriptors -- and string descriptors -- which contain a single string instead of hex numbers \cite{beyond}.
 
-\paragraph{USB Version}
+\begin{description}
+\item[USB version]
 The device descriptor also holds the used USB version.
 By manipulating this field in the device descriptor, a USB 2.0 device can connect to a host as USB 1.1 device \cite{beyond}.
 
-\paragraph{Device Class}
+\item[Device class]
 Class codes are used to specify the functionality of a device.
 They are communicated to the host to determine if the device is supported and if so decide which driver should be used for it.
 For example, a device identifying itself with the class code $0E_h$ should be treated as a webcam providing a video signal.
@@ -227,19 +228,21 @@ If the manufacturer thinks none of the device classes matches the functionality,
 vendor specific class: $FF_h$ \cite{axel}.
 This might be a good idea for a USB rocket launcher.
 
-\paragraph{Device SubClass}
+\item[Device subclass]
 The subclass specifies in detail what kind of device it is.
 
-\paragraph{Device Protocol}
+\item[Device protocol]
 The protocol field defines a protocol which should be used to communicate with it.
 
-\paragraph{IDs \& Numbers}
+\item [IDs \& numbers]
 The device descriptor contains a vendor id to identify the manufacturer of a device.
 To identify the product of a manufacturer, a product id is used.
 A device release number and a serial number can be set additionally to specify the
 hardware configuration.
 
-\subsubsection{Endpoints}
+\end{description}
+
+\subsection{Endpoints}
 Endpoints are used for communication.
 Each communication is directed to a specific endpoint.
 A device/host might have multiple endpoints for different purposes.
@@ -265,25 +268,29 @@ The passive side of the communication can send a STALL or not respond within a f
 \label{fig:interrupttransfer}
 \caption{Protocol of an interrupt transfer \cite{beyond}}
 \end{figure}
-\paragraph{Control Endpoint}
+
+\begin{description}
+\item[Control endpoint]
 Control endpoints are applied for control transfers and device configuration.
 With them the device is configured.
 Every device has a control endpoint (endpoint zero).
 
-\paragraph{Bulk Endpoint}
+\item[Bulk endpoint]
 Bulk endpoints are used for bulk transfers.
-Theese non-time-critical transfers are applied for transferring large data
+These non-time-critical transfers are applied for transferring large data
 in read/write operations on external storage devices.
 
-\paragraph{Isochronus Endpoint}
-Isochronus endpoints are used for isochronus transfers.
-Isochronus transfers are used if a specific transfer rate is required.
+\item[Isochronous endpoint]
+Isochronous endpoints are used for isochronous transfers.
+Isochronous transfers are used if a specific transfer rate is required.
 
-\paragraph{Interrupt Endpoint}
+\item[Interrupt endpoint]
 Interrupt endpoints are used for interrupt transfers.
 Surprisingly this endpoint does not really work with interrupts in USB 2.0 or earlier versions.
 Interrupt endpoints are polled each \emph{x} milliseconds.
 They are often used for human interface devices.
+
+\end{description}
 
 \subsection{Packets}
 For the whole communication packets are used.
@@ -291,30 +298,33 @@ Each message sent from an endpoint and received from an endpoint is based on a s
 The packet overhead is only a few bytes depending on the used USB version.
 The type of a packet determines what kind of data it contains.
 
-\paragraph{Sync}
+\begin{description}
+\item[Sync]
 All packets start with a sync field.
 This field is used to synchronize the timing of transmitter and receiver.
 
-\paragraph{PID}
+\item[PID]
 To specify the content of a packet each sync field of a packet is followed by a PID field.
 It contains a 4 bit information about the content.
 To ensure integrity, the PID field contains twice the information to detect bit errors.
 
-\paragraph{ADDR}
+\item[ADDR]
 The ADDR field specifies a device to communicate with.
 
-\paragraph{ENDP}
+\item[ENDP]
 The ENDP field specifies an endpoint which should receive the packet.
 Other Endpoints will not notice the packet at all.
 
-\paragraph{Data}
+\item[Data]
 The data field contains up to 1 KB of custom data \cite{beyond}.
 
-\paragraph{CRC}
+\item [CRC]
 The CRC field contains a CRC sum of the data field \emph{only} to ensure integrity of the data.
 
-\paragraph{EOP}
+\item[EOP]
 The EOP field indicates the end of the package and is always the last in field in each package.
+
+\end{description}
 
 \section{Microkernel}
 \label{sec:microkernel}
@@ -403,8 +413,8 @@ In this paper we try to present a separated USB service which will encapsulate t
 
 \section{USB service}
 \label{sec:serv}
-We'll look at the Linux USB driver architecture to get an understanding of how to separate concerns
-in the handling of the USB protocol and introduce terms we'll be using when describing the design
+We will look at the Linux USB driver architecture to get an understanding of how to separate concerns
+in the handling of the USB protocol and introduce terms we will be using when describing the design
 of the USB service.
 \begin{figure}
 \centering
@@ -429,7 +439,7 @@ Specific drivers for USB devices can use this library to access hardware and man
 
 An USB service would have to implement the USBCore functionality, so specific userspace
 USB drivers can be implemented without wrestling with too many problems.
-If we consider the 3 functionalities to provide a working USB environment, we'll see the 2
+If we consider the 3 functionalities to provide a working USB environment, we will see the 2
 main problems: deciding which URBs to send and authorize access.
 Not providing a solution to either one of these problems could result in data loss,
 data corruption or even broken hardware.
@@ -442,7 +452,7 @@ scheduling.
 While there are scheduling algorithms in hardware which can even be configured \cite{chs-ERSA03},
 we will not consider those in the solution provided, since it should be possible to implement
 the design on any microkernel.
-There are scheduling algorithms which decide based on the priority of a task (such as Fixed
+There are scheduling algorithms which decide based on the priority of a task (such as fixed
 priority scheduling).
 These are not very helpful in this scenario.
 Every device driver should be handled equally and thus have the same priority.
@@ -450,7 +460,7 @@ If a system is statically configured and/or embedded one could argue that the pr
 the system are known (e.g. URBs from human interaction devices have a higher priority than
 mass storage URBs).
 Since the execution time of the operation (transmitting an URB over the bus) should not change,
-algorithms such as Shortest job first (SJF) are not looked at in this solution.
+algorithms such as Shortest Job First (SJF) are not looked at in this solution.
 If the URBs would be scheduled with a First In first Out (FIFO) scheduler, a faulty driver
 or a long operation could block all other drivers from accessing the bus.
 Instead, the service will have a round-robin approach and will check if any device has URBs
