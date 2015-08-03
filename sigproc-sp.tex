@@ -250,7 +250,7 @@ There are four different types of endpoints.
 The integrity of a transfer is secured by a CRC sum for each endpoint.
 To end a transfer, each message needs to be acknowledged except those from interrupt endpoints.
 Endpoints are configured in an endpoint descriptor.
-In general the communicated data can be split in three parts: \cite{beyond}
+In general the communicated data can be split in three parts \cite{beyond}:
 \begin{itemize}
 \item Token Packet
 \item Data Packet
@@ -262,7 +262,7 @@ Data packets contain the data.
 The passive side of the communication can send a STALL or not respond within a few milliseconds
 \cite{beyond}.
 
-\begin{figure}
+\begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{interrupttransfer.png}
 \label{fig:interrupttransfer}
@@ -330,7 +330,7 @@ The EOP field indicates the end of the package and is always the last in field i
 \label{sec:microkernel}
 A microkernel ($\mu$-kernel) as opposed to a monolithic kernel has fewer code running in
 supervisor mode (kernel mode).
-\begin{figure}
+\begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{minixinternalstructure.png}
 \label{fig:minixmicarch}
@@ -416,7 +416,7 @@ In this paper we try to present a separated USB service which will encapsulate t
 We will look at the Linux USB driver architecture to get an understanding of how to separate concerns
 in the handling of the USB protocol and introduce terms we will be using when describing the design
 of the USB service.
-\begin{figure}
+\begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{usblinux.png}
 \label{fig:usblinux}
@@ -523,7 +523,7 @@ The device driver will then create URBs and queue them in the device driver.
 In figure \ref{fig:usbsched} you can see (in red) a periodic task of the USB service
 which will check each device driver queue for URBs and put them on the host controller.
 This will be done in a round robin fashion to prevent devices to spam URBs.
-\begin{figure}
+\begin{figure}[!h]
 \centering
 \includegraphics[width=0.5\textwidth]{usbsched.png}
 \caption{Scheduling of the USB service}
