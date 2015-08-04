@@ -159,6 +159,7 @@ Section \ref{sec:both} describes problems that may occur in a microkernel enviro
 section \ref{sec:serv} will provide a design which is capable of solving those problems.
 
 \section{USB}
+\label{sec:usb}
 Universal Serial Bus (USB) is a serial bus.
 With USB it is possible to connect a lot of different types of devices to a host.
 Today, the most common USB devices are keyboards and mice.
@@ -170,12 +171,12 @@ That means connecting, disconnecting and detecting a USB device to/from a runnin
 There is a large amount of different USB connectors (Type A, Type B, Mini A, Mini AB, Mini B, Micro AB, Micro B, Type C \cite{usborg}).
 They vary in size, profile, durability, compatibility and usability \cite{dowell}.
 The pins used in USB 1.x/2.0 in each of the connectors are nearly the same.
-Small differences of pinconfigurations can be seen in figure \ref{fig:usb1} and figure  \ref{fig:usb2}.
+Small differences of pinconfigurations can be seen in table \ref{tab:usb1} and table \ref{tab:usb2}.
 
 \begin{table}
 \centering
 \caption{USB 1.x/2.0 standard pinout}
-\label{fig:usb1}
+\label{tab:usb1}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red (or orange) & + 5 V\\ \hline
@@ -188,7 +189,7 @@ Pin & Name & Wire color & Description\\ \hline
 \begin{table}
 \centering
 \caption{USB 1.x/2.0 mini/micro pinout}
-\label{fig:usb2}
+\label{tab:usb2}
 \begin{tabular}{|l|l|l|l|} \hline
 Pin & Name & Wire color & Description\\ \hline
 1 & $V_{BUS}$ & Red & + 5 V\\ \hline
@@ -447,7 +448,7 @@ If we consider the 3 functionalities to provide a working USB environment, we wi
 main problems: deciding which URBs to send and authorize access.
 Not providing a solution to either one of these problems could result in data loss,
 data corruption or even broken hardware.
-We can solve these problems by providing a queue for each driver, which will hold the URBs
+We can solve one of these problems by providing a queue for each driver, which will hold the URBs
 for this driver and capability based access control.
 
 \subsection{Scheduling}
@@ -501,22 +502,42 @@ In contrast, ACLs belong to an object \emph{o}.
 If an application/task (domain \emph{d}) is trying to access object \emph{o}, it is checked
 (in the ACL) if the operation is allowed for this application.
 
+\begin{table}
+\centering
+\caption{ACL and capabilities in an access matrix}
+\label{tab:acmatrix}
+\begin{tabular}{|l|l|l|l|} \hline
+          & \emph{d1} & \emph{d2} & \emph{d3} \\ \hline
+\emph{o1} & read & readwrite & none \\ \hline
+\emph{o2} & read & none & readwrite \\ \hline
+\emph{o3} & read & read & read \\ \hline
+\end{tabular}
+\end{table}
+
+As shown in table \ref{tab:acmatrix} both mechanisms work on access matrices.
+Capabilities are a view of the columns of the access matrix (they are bound to the domains) while
+an ACL represents a view of the rows of the matrix (they are bound to the objects).
 While ACLs can be isolated in the USB service and controlled easily via lookup tables,
 capabilities can be stored in a task or application and be reused to reduce overhead.
-We decided to use capabilities to grant access to applications to send URBs
-via the USB library offered by the USB service.
+We decided to use capabilities to grant access to drivers to generate URBs for the USB service
+to look up.
 Some operating systems like seL4 microkernel based ones \cite{sel4} use capabilities
 and are therefore a good example of how capabilities can be used in a microkernel
 environment.
 In a capability based system the mere possession of a capability entitles
-the application to send URBs and there is no need for the USB service to
+the user to generate URBs and there is no need for the USB service to
 check any rights during operations.
-An owner of a device, probably the application which opens the device first,
-is allowed to change USB capabilities in the system.
+An owner of a device, probably the driver which opens the device first,
+is allowed to change the USB capabilities for this device in the system.
 It may also exclusively block the device.
 This may be relevant in USB adapters for terminals for example.
 The owner may also specify a default capability which is given to any
 application by default when opening the device.
+In a USB device driver an ACL could be used to select which applications can access the managed
+devices.
+It is not part of the USB service to decide which application is allowed to access
+devices as it's sole purpose is to send and receive URBs via the host controller attached
+to the system.
 
 \subsection{Architecture}
 Users will access USB components via a service library API of the USB service.
@@ -533,28 +554,42 @@ This will be done in a round robin fashion to prevent devices to spam URBs.
 \caption{Scheduling of the USB service}
 \label{fig:usbsched}
 \end{figure}
-The device drivers will then create appropriate data structures and send them
-to the USB service, which can then call appropriate installed handlers.
-Those handlers may be setup by the application using the library to handle
-asynchronous data transfers or they can be wrapped by the library internally
-in order to simulate synchronous calls.
-To allow different device drivers, an API has to be provided which must be implemented
+A device driver will therefore provide an API with appropriate data structures
+and interfaces to send/receive specific data.
+Initially each driver will install a handler in the USB service which will be
+called back once URBs for the driver are available.
+The driver buffers incoming URBs until a data structure specific for the driver
+(e.g. mouse click etc.) is ready.
+Depending on the nature of the call (sync/async) by the user of the driver it will
+either call the user back or simply return the data.
+To allow different device drivers, interfaces have to be provided which must be implemented
 by device drivers so that the service can send/receive URBs to/from the queue.
+To allow reusing of code, a USB library can be created to abstract
+most of USB facilities for drivers and applications (e.g. \emph{libusb} on Linux systems).
 
-In order to gain access to USB devices an application uses the library
-to open it.
+\begin{figure}[!h]
+\centering
+\includegraphics[width=0.5\textwidth]{usbarch.png}
+\caption{Architecture of the USB in microkernels design}
+\label{fig:usbarch}
+\end{figure}
+Figure \ref{fig:usbarch} shows an overview of all components for this design
+proposal.
+In this scenario, in order to gain access to USB devices, an application uses
+the library to open it.
 It is then considered as owner of that device.
-An operating system task may then use this ownership to change capabilities
-for any accessing application.
-If there is no such capability for an application, a default capability will
+An owner may then use this ownership to change access restrictions
+for any other accessing application.
+If there is no such restriction for an application, a default access will
 be granted which doesn't allow any operation for that application.
-How those capabilities may actually look like in a real world application
+How those restrictions may actually look like in a real world application
 is out of the scope of this paper.
 An application could be identified by the process name or functionality.
 
 \section{Conclusions}
-While designing the USB service, it seemed the problems to be
-solved are not specific to the domain of microkernels.
+While designing the USB service, it seemed the problems mentioned earlier
+(shared resources and access restrictions) to be solved are not specific
+to the domain of microkernels
 The solution presented in this paper designs a single task
 that is responsible to grant access and manage data flow
 of USB request blocks.
@@ -575,7 +610,7 @@ systems with lots of user interaction (keyboards, etc.).
 We'd like to thank Daniel Ernst and Matthias Jurisch
 of RheinMain University of Applied Science for their design proposal \cite{ernst}
 which originated from the same ideas we have.
-Besides very few specifics our approach is identical.
+Besides specifics our ideas were triggered by their paper.
 
 %
 % The following two commands are all you need in the
