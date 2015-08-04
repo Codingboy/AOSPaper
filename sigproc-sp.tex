@@ -265,13 +265,13 @@ IN means, the host receives data from the device, OUT means the host sends data 
 Data packets contain the data.
 The passive side of the communication can send a STALL or not respond within a few milliseconds
 \cite{beyond}.
-Figure \ref{fig:interrupttransfer} shows which flags can be send during an interrupt transfer.
+Figure \ref{fig:ifer} shows which flags can be send during an interrupt transfer.
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{interrupttransfer.png}
-\label{fig:interrupttransfer}
 \caption{Protocol of an interrupt transfer \cite{beyond}}
+\label{fig:ifer}
 \end{figure}
 
 \begin{description}
@@ -338,8 +338,8 @@ supervisor mode (kernel mode).
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{minixinternalstructure.png}
-\label{fig:minixmicarch}
 \caption{The microkernel architecture as provided by Minix \cite{minix}}
+\label{fig:minixmicarch}
 \end{figure}
 The architecture of microkernel based operating systems separates basic
 hardware functionality from other layers of hardware access (as seen in Figure \ref{fig:minixmicarch}).
@@ -424,8 +424,8 @@ of the USB service.
 \begin{figure}[!h]
 \centering
 \includegraphics[width=0.4\textwidth]{usblinux.png}
-\label{fig:usblinux}
 \caption{Main components of the Linux USB driver}
+\label{fig:usblinux}
 \end{figure}
 Figure \ref{fig:usblinux} shows how the operating system USB functionality can be split up into
 major components.
